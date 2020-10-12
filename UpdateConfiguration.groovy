@@ -15,13 +15,13 @@ class UpdateConfiguration {
    * Work starts here.
    */
   void run() {
-    println ""
+    println ''
     IpConfig ip = getIpAddess()
     if (!ip.isVpn) {
-      println "WARNING: It seems you are NOT on the VPN."
-      println "WARNING: If this is a first time setup, you may not"
-      println "WARNING: be able  to create the signature container."
-      println ""
+      println 'WARNING: It seems you are NOT on the VPN.'
+      println 'WARNING: If this is a first time setup, you may not'
+      println 'WARNING: be able  to create the signature container.'
+      println ''
     }
     println "IP is ${ip.ip} (${ip.isVpn ? "VPN" : "NOT on the VPN"})"
 
@@ -29,8 +29,8 @@ class UpdateConfiguration {
     println "Hostname is ${hostname}"
 
     makeFilesFromTemplates([
-      "__VPN_IP__": ip.ip,
-      "__LOCAL_HOSTNAME__": hostname
+      '__VPN_IP__': ip.ip,
+      '__LOCAL_HOSTNAME__': hostname
     ])
   }
 
@@ -43,8 +43,8 @@ class UpdateConfiguration {
   String getHostname() {
     String hostname = java.net.InetAddress.getLocalHost().getHostName()
     if (!hostname) {
-      System.err.println("Couldn't determine hostname")
-      System.err.println("Exiting.")
+      System.err.println('Could not determine hostname')
+      System.err.println('Exiting.')
       System.exit(-2)
     }
     return hostname
@@ -66,16 +66,18 @@ class UpdateConfiguration {
      * and aren't on the VPN, we need to update this code.
      */
     boolean isVpn = true
-    String localOrVpnIp = findIpAddress(configs, "corp.peopleclick.com")
+    String localOrVpnIp = findIpAddress(configs, 
+      'Connection-specific DNS Suffix', 'corp.peopleclick.com')
     if (!localOrVpnIp) {
       // Look for a non-VPN IP address
       isVpn = false
-      localOrVpnIp = findIpAddress(configs, "local")
+      localOrVpnIp = findIpAddress(configs, 
+        'Connection-specific DNS Suffix', 'local')
     }
 
     if (!localOrVpnIp) {
-      System.err.println("Could not detect IP address. Check script logic.")
-      System.err.println("Exiting.")
+      System.err.println('Could not detect IP address. Check script logic.')
+      System.err.println('Exiting.')
       System.exit(-3)
     }
     return new IpConfig(ip: localOrVpnIp, isVpn: isVpn)
@@ -91,33 +93,33 @@ class UpdateConfiguration {
    * Each config is a map.
    */
   List<Map> parseIpConfig() {
-    String cmd = "ipconfig"
+    String cmd = 'ipconfig'
     List<Map> configs = []
     Map currentConfig = null
 
     // Parse output result of ipconfig into configs
-    cmd.execute().text.split("[\n\r]").
+    cmd.execute().text.split('[\n\r]').
       collect { String line ->
         line.trim() 
       }.
       each { String line ->
         if (!line) { return }
-        else if (line.startsWith("Ethernet adapter ") || line.startsWith("Wireless LAN adapter")) {
+        else if (line.startsWith('Ethernet adapter ') || line.startsWith('Wireless LAN adapter')) {
           currentConfig = ['name': line]
           configs << currentConfig
         }
         else if (!currentConfig) { return }
         else {
-          LineParts parts = splitDataLine(line)
-          if (parts) {
-            currentConfig[parts.key] = parts.value
+          ConfigEntry configEntry = splitDataLine(line)
+          if (configEntry) {
+            currentConfig[configEntry.key] = configEntry.value
           }
         }
       }
     return configs
   }
 
-  class LineParts {
+  class ConfigEntry {
     String key
     String value
   }
@@ -125,17 +127,20 @@ class UpdateConfiguration {
   /**
    * A key/value line from ipconfig (within an adapter stanza) looks like
    * "IPv4 Address. . . . . . . . . . . : 192.168.1.153"
-   * Split this into a LineParts with
+   * Split this into a ConfigEntry with
    *    key: "IPv4 Address"
    *    value: "192.168.1.153"
    * If this format is not found, return null
    *
-   * @return a LineParts or null
+   * @return a ConfigEntry or null
    */
-  LineParts splitDataLine(String line) {
+  ConfigEntry splitDataLine(String line) {
     def result = (line =~ /^(.*?)( ?\.?)* :[ ]?(.*)$/).findAll()
-    if (result.size() == 1) {
-      return new LineParts(key: result[0][1], value: result[0][3])
+    if (result.size() == 1 && 
+        result[0].size() == 4 &&
+        result[0][3]) {
+      // We have both a key and a non-empty value
+      return new ConfigEntry(key: result[0][1], value: result[0][3])
     }
     else {
       return null
@@ -149,10 +154,9 @@ class UpdateConfiguration {
    * 
    * @return the IPv4 address or null
    */
-  String findIpAddress(List<Map> configs, String dnsSuffixPriorty) {
+  String findIpAddress(List<Map> configs, String searchField, String searchValue) {
     Map foundConfig = configs.find { Map config ->
-      config.'Connection-specific DNS Suffix' == dnsSuffixPriorty &&
-        config.containsKey('IPv4 Address')
+      config[searchField] == searchValue && config.containsKey('IPv4 Address')
     }
     return foundConfig ? foundConfig.'IPv4 Address' : null
   }
@@ -174,11 +178,11 @@ class UpdateConfiguration {
    * the application will exit with -1.
    */
   void makeFilesFromTemplates(Map substitutions) {
-    println ""
+    println ''
     templates.each { File sourceFile, File destFile ->
       if (!sourceFile.exists()) {
-        System.err.println("Source template file ${sourceFile} missing")
-        System.err.println("Exiting.")
+        System.err.println('Source template file ${sourceFile} missing')
+        System.err.println('Exiting.')
         System.exit(-1)
       }
 
