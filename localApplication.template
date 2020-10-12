@@ -1,0 +1,32 @@
+##
+## !! DO NOT EDIT the localApplication.properties file.
+## !! INSTEAD edit the localApplication.template file
+##
+
+debug=false
+
+server.port=8085
+server.servlet.context-path=/SignatureService
+app.signature.service.baseUrl=http://__LOCAL_HOSTNAME__.corp.peopleclick.com:${server.port}${server.servlet.context-path}
+app.signature.service.contentUrl=http://__LOCAL_HOSTNAME__.corp.peopleclick.com:${server.port}${server.servlet.context-path}
+app.signature.docviewer.server=http://__LOCAL_HOSTNAME__.corp.peopleclick.com:8090/
+
+logging.level.org.apache.http=DEBUG
+logging.level.org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter=INFO
+logging.level.org.springframework=INFO
+logging.level.com.peoplefluent=DEBUG
+
+app.signature.service.token.timeout_seconds=3000
+app.signature.service.token.session_seconds=3600
+
+# DataBase Configuration
+spring.datasource.driverClassName=com.microsoft.sqlserver.jdbc.SQLServerDriver
+spring.datasource.url=jdbc:sqlserver://mssql2017;databaseName=signature;
+spring.datasource.username=signature
+spring.datasource.password=signature
+
+spring.jpa.show-sql=false
+
+app.logging.amqpappender.enable=false
+app.amqpappender.host=localhost
+app.amqpappender.port=6672

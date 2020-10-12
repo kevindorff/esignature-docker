@@ -1,0 +1,6 @@
+/.env
+/localApplication.properties
+/docker-compose.yml
+/mssql2017/
+/portainer/
+/signature/

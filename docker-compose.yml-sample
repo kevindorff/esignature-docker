@@ -1,0 +1,58 @@
+version: '3'
+
+##
+## !! DO NOT EDIT the docker-compose.yml file.
+## !! INSTEAD edit the docker-compose.template file
+##
+
+services:
+
+  mssql2017:
+    container_name: mssql2017
+    image: mcr.microsoft.com/mssql/server:2017-latest
+    platform: linux
+    ports:
+      - 1433:1433
+    environment:
+      - SA_PASSWORD=CHANGE_THIS_VALUE
+      - ACCEPT_EULA=Y
+    volumes:
+      - ./mssql2017/var/opt/mssql:/var/opt/mssql
+
+  pdftron:
+    container_name: pdftron
+    image: pdftron/webviewer-server:latest
+    platform: linux
+    extra_hosts:
+      - ${LOCAL_HOSTNAME}.corp.peopleclick.com:${VPN_IP}
+    ports:
+      - 8090:8090
+    environment:
+      - INCLUDE_DEMO=false
+
+  signature:
+    container_name: signature
+    image: reg-fe.cd.pf-labs.net/peoplefluent/java-signature-service:release-1
+    platform: linux
+    depends_on:
+      - mssql2017
+      - pdftron
+    extra_hosts:
+      - ${LOCAL_HOSTNAME}.corp.peopleclick.com:${VPN_IP}
+    ports:
+      - 8085:8085
+    env_file:
+      - localApplication.properties
+    volumes:
+      - ./signature/apps/SD/peopleclick/signature:/apps/SD/peopleclick/signature
+
+  portainer:
+    container_name: portainer
+    image: portainer/portainer-ce
+    platform: linux
+    restart: always
+    ports:
+      - 9000:9000
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./portainer/data:/data
