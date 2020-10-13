@@ -30,7 +30,8 @@ class UpdateConfiguration {
 
     makeFilesFromTemplates([
       '__VPN_IP__': ip.ip,
-      '__LOCAL_HOSTNAME__': hostname
+      '__LOCAL_HOSTNAME__': hostname,
+      '__IS_VPN__': "${ip.isVpn}",
     ])
   }
 
